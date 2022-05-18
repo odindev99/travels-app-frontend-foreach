@@ -3,6 +3,7 @@ import {
 	FormControl,
 	FormLabel,
 	Input,
+	Spinner,
 	useToast,
 } from "@chakra-ui/react";
 import { useFormik } from "formik";
@@ -10,12 +11,21 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthForm from "../AuthForm/AuthForm";
 import { yupValidationsSchema } from "./LoginFormValidations.js";
 import Users from "../../services/Users";
+import useLoadingProcess from "../../hooks/useLoadingProcess";
 
-const submitHandler = async (formValues, toast, navigate) => {
+const submitHandler = async ({
+	formValues,
+	toast,
+	navigate,
+	startLoadingProcess,
+	endLoadingProcess,
+}) => {
 	try {
+		startLoadingProcess();
+
 		const { email, password } = formValues;
-		
-		const response = await Users.loginUser({ email, password }, );
+
+		const response = await Users.loginUser({ email, password });
 
 		toast({
 			title: response.data.message,
@@ -26,8 +36,12 @@ const submitHandler = async (formValues, toast, navigate) => {
 
 		localStorage.setItem("travels_jwt", response.data.token);
 
+		endLoadingProcess();
+
 		return navigate("/home");
 	} catch (error) {
+		endLoadingProcess();
+
 		return toast({
 			title:
 				error?.response?.data?.message ||
@@ -42,6 +56,8 @@ const submitHandler = async (formValues, toast, navigate) => {
 const LoginForm = () => {
 	const navigate = useNavigate();
 	const toast = useToast();
+	const { loading, startLoadingProcess, endLoadingProcess } =
+		useLoadingProcess();
 
 	const formik = useFormik({
 		initialValues: {
@@ -49,7 +65,14 @@ const LoginForm = () => {
 			password: "",
 		},
 		validationSchema: yupValidationsSchema,
-		onSubmit: (values) => submitHandler(values, toast, navigate),
+		onSubmit: (formValues) =>
+			submitHandler({
+				formValues,
+				toast,
+				navigate,
+				endLoadingProcess,
+				startLoadingProcess,
+			}),
 	});
 
 	return (
@@ -90,6 +113,12 @@ const LoginForm = () => {
 					Registrate
 				</Link>
 			</div>
+
+			{loading && (
+				<div className="w-full flex justify-center">
+					<Spinner />
+				</div>
+			)}
 
 			<Button colorScheme="blue" type="submit">
 				Login

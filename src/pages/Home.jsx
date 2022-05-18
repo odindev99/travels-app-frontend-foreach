@@ -10,6 +10,7 @@ import {
 	Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AddTravelForm from "../components/AddTravelForm/AddTravelForm";
 import TravelsTable from "../components/TravelsTable/TravelsTable";
 import Users from "../services/Users";
@@ -19,6 +20,7 @@ const Home = () => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const [travels, setTravels] = useState();
 	const toast = useToast();
+	const navigate = useNavigate();
 
 	const onUpdateTravels = (newTravel) =>
 		setTravels((prevTravels) => [...prevTravels, newTravel]);
@@ -31,6 +33,9 @@ const Home = () => {
 				setTravels(response.data.travels);
 			})
 			.catch((error) => {
+				if (error?.response?.status === 401) {
+					navigate("/");
+				}
 				return toast({
 					title:
 						error?.response?.data?.message ||

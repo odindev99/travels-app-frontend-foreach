@@ -8,14 +8,25 @@ import {
 	Radio,
 	Button,
 	useToast,
+	Spinner,
 } from "@chakra-ui/react";
 import { useFormik } from "formik";
 import { yupValidationsSchema } from "./AddTravelFormValidations";
 import Travels from "../../services/Travels";
 import getAuthToken from "../../utils/getAuthToken";
+import useLoadingProcess from "../../hooks/useLoadingProcess";
 
-const submitHandler = async (formValues, onUpdateTravels, toast) => {
+const submitHandler = async (
+	formValues,
+	onUpdateTravels,
+	formik,
+	toast,
+	startLoadingProcess,
+	endLoadingProcess
+) => {
 	try {
+		startLoadingProcess();
+
 		const { roundtrip, ...rest } = formValues;
 		const travelData = {
 			...rest,
@@ -28,6 +39,10 @@ const submitHandler = async (formValues, onUpdateTravels, toast) => {
 
 		onUpdateTravels(response.data.newTravel);
 
+		endLoadingProcess();
+
+		formik.resetForm();
+
 		return toast({
 			title: response.data.message,
 			position: "top-right",
@@ -35,6 +50,10 @@ const submitHandler = async (formValues, onUpdateTravels, toast) => {
 			status: "success",
 		});
 	} catch (error) {
+		endLoadingProcess();
+
+		formik.resetForm();
+
 		return toast({
 			title:
 				error?.response?.data?.message ||
@@ -48,6 +67,8 @@ const submitHandler = async (formValues, onUpdateTravels, toast) => {
 
 const AddTravelForm = ({ onClose, onUpdateTravels }) => {
 	const toast = useToast();
+	const { loading, startLoadingProcess, endLoadingProcess } =
+		useLoadingProcess();
 
 	const formik = useFormik({
 		initialValues: {
@@ -60,7 +81,16 @@ const AddTravelForm = ({ onClose, onUpdateTravels }) => {
 			roundtrip: "si",
 		},
 		validationSchema: yupValidationsSchema,
-		onSubmit: (values) => submitHandler(values, onUpdateTravels, toast),
+		onSubmit: (values) => {
+			submitHandler(
+				values,
+				onUpdateTravels,
+				formik,
+				toast,
+				startLoadingProcess,
+				endLoadingProcess
+			);
+		},
 	});
 
 	return (
@@ -184,6 +214,12 @@ const AddTravelForm = ({ onClose, onUpdateTravels }) => {
 					<div className="formik-error">{formik.errors.roundtrip}</div>
 				) : null}
 			</FormControl>
+
+			{loading && (
+				<div className="w-full flex justify-center">
+					<Spinner />
+				</div>
+			)}
 
 			<div className="flex justify-center gap-x-6">
 				<Button type="submit" colorScheme="blue" size="sm">

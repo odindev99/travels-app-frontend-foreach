@@ -4,18 +4,29 @@ import {
 	FormLabel,
 	Input,
 	useToast,
+	Spinner,
 } from "@chakra-ui/react";
 import { useFormik } from "formik";
 import { Link } from "react-router-dom";
 import Users from "../../services/Users";
 import AuthForm from "../AuthForm/AuthForm";
 import { ownValidations, yupValidationsSchema } from "./SigninFormValidations";
+import useLoadingProcess from "../../hooks/useLoadingProcess";
 
-const submitHandler = async (formValues, toast) => {
+const submitHandler = async ({
+	formValues,
+	toast,
+	startLoadingProcess,
+	endLoadingProcess,
+}) => {
 	try {
+		startLoadingProcess();
+
 		const { email, password } = formValues;
 
 		const response = await Users.siginUser({ email, password });
+
+		endLoadingProcess();
 
 		return toast({
 			title: response.data.message,
@@ -24,6 +35,8 @@ const submitHandler = async (formValues, toast) => {
 			status: "success",
 		});
 	} catch (error) {
+		endLoadingProcess();
+
 		return toast({
 			title:
 				error?.response?.data?.message ||
@@ -37,6 +50,8 @@ const submitHandler = async (formValues, toast) => {
 
 const SigninForm = () => {
 	const toast = useToast();
+	const { loading, startLoadingProcess, endLoadingProcess } =
+		useLoadingProcess();
 
 	const formik = useFormik({
 		initialValues: {
@@ -46,7 +61,13 @@ const SigninForm = () => {
 		},
 		validate: ownValidations,
 		validationSchema: yupValidationsSchema,
-		onSubmit: (values) => submitHandler(values, toast),
+		onSubmit: (formValues) =>
+			submitHandler({
+				formValues,
+				endLoadingProcess,
+				startLoadingProcess,
+				toast,
+			}),
 	});
 
 	return (
@@ -103,6 +124,12 @@ const SigninForm = () => {
 					Incia Sesión
 				</Link>
 			</div>
+
+			{loading && (
+				<div className="w-full flex justify-center">
+					<Spinner />
+				</div>
+			)}
 
 			<Button colorScheme="blue" type="submit">
 				Registrarse
