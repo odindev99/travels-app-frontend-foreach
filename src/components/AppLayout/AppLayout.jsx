@@ -39,7 +39,7 @@ const AppLayout = ({ children }) => {
 						)}
 					</div>
 				</header>
-				<main className="w-full h-full p-8">{children}</main>
+				<main className="w-full h-full py-8">{children}</main>
 			</div>
 		</>
 	);

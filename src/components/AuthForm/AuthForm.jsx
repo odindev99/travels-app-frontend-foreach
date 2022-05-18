@@ -4,7 +4,7 @@ const AuthForm = ({ children, submitHandler }) => {
 	return (
 		<div className="max-width h-full flex flex-col justify-center items-center">
 			<form
-				className="bg-white p-8 w-96 flex flex-col gap-y-4 shadow-lg"
+				className="bg-white p-8 max-w-md w-full flex flex-col gap-y-4 shadow-lg"
 				onSubmit={submitHandler}
 			>
 				{children}
