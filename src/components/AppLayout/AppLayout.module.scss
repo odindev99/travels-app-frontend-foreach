@@ -1,0 +1,15 @@
+@use "../../styles/variables.module" as vars;
+
+.container {
+  background-color: vars.$primary-color;
+
+	header {
+		height: vars.$header-height;
+		background-color: vars.$secondary-color;
+	}
+
+	main {
+		height: calc(100vh - #{vars.$header-height});
+		overflow-y: auto;
+	}
+}
